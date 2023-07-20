@@ -54,9 +54,8 @@ void drawScreen(VoxelBuffer buffer) {
 		idx ++;
 	}
 
-	text[idx] = 0;
-
 	// Remove last endl
+	text[idx] = '\0';
 
 	// Print to screen
 	fputs(text, stdout);
@@ -109,7 +108,7 @@ int main() {
 	int flags;
 	int x, y, n;
 
-    signal(SIGINT, onExit);
+	signal(SIGINT, onExit);
 
 	system("stty -icanon"); // Enable shell input
 	system("stty -echo"); // Disable characters printing
