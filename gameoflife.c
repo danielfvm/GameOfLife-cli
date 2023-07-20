@@ -26,32 +26,24 @@ void onExit(int signo) {
 
 	printf("\e[0m"); // clear color
 	printf("\e[?1002l\e[?1015l\e[?1006l"); // Mouse trap all, urxvt, SGR1006  
-	printf("\e[?25h"); // hide cursor
-	printf("\e[1;1f\e[2J"); // clear
+	printf("\e[?25h"); // show cursor
+	printf("\e[1;1f\e[2J"); // clear screen
 	system("stty -echo"); // Disable characters printing
 								   
 	exit(0);
 }
 
 void drawScreen(VoxelBuffer buffer) {
+	char* symbols[4] = { " ", "▄", "▀", "█" };
 	char text[width * height * 2];
 	int idx = 0;
 
-
 	for (int y = 0; y < height / 2; y ++) {
 		for (int x = 0; x < width; x ++) {
-			if (vbuffer[x + y * 2 * width] && !vbuffer[x + (y * 2 + 1) * width])
-				idx += sprintf(text + idx, "▀");
-			else if (!vbuffer[x + y * 2 * width] && vbuffer[x + (y * 2 + 1) * width])
-				idx += sprintf(text + idx, "▄");
-			else if (vbuffer[x + y * 2 * width] && vbuffer[x + (y * 2 + 1) * width])
-				idx += sprintf(text + idx, "█");
-			else
-				idx += sprintf(text + idx, " ");
+			idx += sprintf(text + idx, "%s", symbols[(vbuffer[x + y * 2 * width] << 1) | vbuffer[x + (y * 2 + 1) * width]]);
 		}
 
-		text[idx] = '\n';
-		idx ++;
+		text[idx++] = '\n';
 	}
 
 	// Remove last endl
@@ -77,7 +69,7 @@ int checkNeighbour(int _x, int _y) {
 		for (int x = -1; x <= 1; x ++) {
 			if (x == 0 && y == 0) continue;
 			if (_x + x < 0 || _x + x >= width || _y + y < 0 || _y + y >= height) continue;
-			n += vbuffer[(x + _x) + (y + _y) * width] != DEAD ? 1 : 0;
+			n += vbuffer[(x + _x) + (y + _y) * width] != DEAD;
 		}
 	}
 
@@ -137,21 +129,23 @@ int main() {
 		// Read mouse input non blocking
 		fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
 		while ((n = read(STDIN_FILENO, test, 64)) > 0) {
-			char* k = test;
-			k[n] = 0;
 
-			while ((*k) != ';' && (*k) != '\0') k ++;
-			k ++;
+			// help pointer
+			char* ptr = test;
 
-			x = atoi(k);
-			while ((*k) != ';' && (*k) != '\0') k ++;
-			k ++;
+			// read mouse x
+			while ((*ptr) != ';' && (*ptr) != '\0') ptr ++;
+			x = atoi(++ptr);
 
-			y = atoi(k) * 2;
+			// read mouse y
+			while ((*ptr) != ';' && (*ptr) != '\0') ptr ++;
+			y = atoi(++ptr) * 2;
 
+			// Check bounds
 			if (x + 1 >= width) continue;
 			if (y + 1 >= height) continue;
 
+			// Place 2x2 alive cells
 			vbuffer[x + y * width] = ALIVE;
 			vbuffer[x + 1 + y * width] = ALIVE;
 			vbuffer[x + (y+1) * width] = ALIVE;
