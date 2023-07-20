@@ -1,5 +1,5 @@
 # GameOfLife-cli
-Conway's Game of life running in the Terminal.
+Conway's Game of life running in the linux shell.
 
 ![Preview](https://github.com/danielfvm/GameOfLife-cli/assets/23420640/17896e6a-0112-45ee-8e86-03ebf41c0a95)
 
